@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DARK LEGEND :: SIM Database</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <style>
+        :root {
+            --neon-green: #0f0;
+            --neon-blue: #08f;
+            --neon-purple: #90f;
+            --dark-bg: #0a0a0a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+        
+        .container {
+            background-color: rgba(10, 10, 10, 0.85);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid var(--neon-green);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            z-index: -1;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue), var(--neon-purple), var(--neon-green));
+            background-size: 400%;
+            border-radius: 10px;
+            opacity: 0;
+            transition: 0.5s;
+            animation: animate 20s linear infinite;
+        }
+        
+        .container:hover::before {
+            opacity: 1;
+            filter: blur(5px);
+        }
+        
+        @keyframes animate {
+            0% { background-position: 0 0; }
+            50% { background-position: 300% 0; }
+            100% { background-position: 0 0; }
+        }
+        
+        h1 {
+            color: var(--neon-green);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--neon-green);
+            letter-spacing: 3px;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        input[type="text"] {
+            padding: 12px 15px;
+            width: 80%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            font-size: 16px;
+            color: var(--neon-green);
+            font-family: 'Share Tech Mono', monospace;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+        
+        input[type="text"]:focus {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            border-color: var(--neon-blue);
+        }
+        
+        input[type="text"]::placeholder {
+            color: #555;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-blue));
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .result {
+            margin-top: 1.5rem;
+            text-align: left;
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            padding: 15px;
+            background: rgba(0, 20, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .result:hover::before {
+            animation: shine 1.5s infinite;
+        }
+        
+        @keyframes shine {
+            100% { transform: translateX(100%); }
+        }
+        
+        .result div {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed rgba(0, 255, 0, 0.3);
+        }
+        
+        .result strong {
+            color: var(--neon-blue);
+        }
+        
+        .error {
+            color: #f44;
+            margin-top: 1rem;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            margin-top: 1rem;
+            color: var(--neon-purple);
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        .loading::after {
+            content: '...';
+            position: absolute;
+            animation: dots 1.5s infinite steps(4);
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 255, 0, 0.06) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.5;
+        }
+        
+        .corner {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-color: var(--neon-green);
+            border-style: solid;
+            border-width: 0;
+            pointer-events: none;
+        }
+        
+        .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-top-width: 2px;
+            border-left-width: 2px;
+        }
+        
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-top-width: 2px;
+            border-right-width: 2px;
+        }
+        
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-bottom-width: 2px;
+            border-left-width: 2px;
+        }
+        
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-bottom-width: 2px;
+            border-right-width: 2px;
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch::before {
+            color: #0ff;
+            z-index: -1;
+            animation: glitch-effect 3s infinite;
+        }
+        
+        .glitch::after {
+            color: #f0f;
+            z-index: -2;
+            animation: glitch-effect 2s infinite reverse;
+        }
+        
+        @keyframes glitch-effect {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="matrix-bg"></div>
+    <div class="particles" id="particles-js"></div>
+    <div class="scanlines"></div>
+    
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+    
+    <div class="container">
+        <h1 class="glitch" data-text="DARK LEGEND">DARK LEGEND</h1>
+        <h2 style="color: var(--neon-blue); margin-bottom: 1.5rem; font-size: 1.2rem;">:: SIM DATABASE ::</h2>
+        
+        <div class="input-group">
+            <input type="text" id="mobileInput" placeholder="ENTER MOBILE NUMBER (e.g., 03xxxx)" autocomplete="off">
+            <button onclick="fetchData()">INITIATE SCAN</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">DECRYPTING DATA</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="result" class="result" style="display: none;">
+            <div>
+                <strong>MOBILE:</strong> <span id="result-mobile">---</span><br>
+                <strong>NAME:</strong> <span id="result-name">---</span><br>
+                <strong>CNIC:</strong> <span id="result-cnic">---</span><br>
+                <strong>ADDRESS:</strong> <span id="result-address">---</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix background effect
+        const matrixBg = document.getElementById('matrix-bg');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        matrixBg.appendChild(canvas);
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+        
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        
+        const rainDrops = [];
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+        
+        const drawMatrix = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        };
+        
+        setInterval(drawMatrix, 30);
+        
+        // Three.js particles
+        const particlesContainer = document.getElementById('particles-js');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        particlesContainer.appendChild(renderer.domElement);
+        
+        // Create particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 500;
+        
+        const posArray = new Float32Array(particlesCount * 3);
+        
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.02,
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        camera.position.z = 3;
+        
+        // Animation loop
+        const animateParticles = () => {
+            requestAnimationFrame(animateParticles);
+            
+            particlesMesh.rotation.x += 0.0005;
+            particlesMesh.rotation.y += 0.0005;
+            
+            renderer.render(scene, camera);
+        };
+        
+        animateParticles();
+        
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // GSAP animations
+        gsap.from(".container", {
+            duration: 1.5,
+            y: -50,
+            opacity: 0,
+            ease: "power3.out"
+        });
+        
+        gsap.from("h1", {
+            duration: 1,
+            opacity: 0,
+            y: -20,
+            delay: 0.5,
+            ease: "bounce.out"
+        });
+        
+        gsap.from(".input-group", {
+            duration: 1,
+            opacity: 0,
+            x: -50,
+            delay: 1,
+            ease: "elastic.out(1, 0.5)"
+        });
+        
+        // Database lookup function
+        async function fetchData() {
+            const mobileInput = document.getElementById('mobileInput').value;
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            
+            // Clear previous results and errors
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            
+            // Animate loading
+            gsap.fromTo(loadingDiv, 
+                { opacity: 0, y: 10 },
+                { opacity: 1, y: 0, duration: 0.5 }
+            );
+            
+            // Validate input
+            if (!mobileInput.match(/^\d{10,11}$/)) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = 'ERROR: INVALID MOBILE NUMBER (10-11 DIGITS REQUIRED)';
+                errorDiv.style.display = 'block';
+                
+                // Shake animation for error
+                gsap.fromTo(errorDiv, 
+                    { x: -10 },
+                    { x: 10, duration: 0.1, repeat: 5, yoyo: true, onComplete: () => {
+                        gsap.to(errorDiv, { x: 0, duration: 0.1 });
+                    }}
+                );
+                return;
+            }
+            
+            // Use allorigins proxy
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
+            const apiUrl = `https://famofcfallxd.serv00.net/apis/newsimdata.php?num=${encodeURIComponent(mobileInput)}`;
+            const url = proxyUrl + encodeURIComponent(apiUrl);
+            
+            try {
+                // Simulate hacking effect
+                const hackingEffect = setInterval(() => {
+                    const randomText = Math.random().toString(36).substring(2, 7);
+                    loadingDiv.textContent = `DECRYPTING DATA ${randomText}`;
+                }, 100);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                clearInterval(hackingEffect);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ERROR! STATUS: ${response.status} - ${response.statusText}`);
+                }
+                
+                const proxyData = await response.json();
+                const data = JSON.parse(proxyData.contents);
+                
+                loadingDiv.style.display = 'none';
+                
+                if (data.status === 'success' && data.data && data.data.length > 0) {
+                    const record = data.data[0];
+                    
+                    // Update result fields with typing animation
+                    resultDiv.style.display = 'block';
+                    
+                    gsap.fromTo(resultDiv, 
+                        { opacity: 0, y: 20 },
+                        { opacity: 1, y: 0, duration: 0.5 }
+                    );
+                    
+                    // Typewriter effect for each field
+                    typeWriterEffect('result-mobile', record.mobile || '---', 0);
+                    typeWriterEffect('result-name', record.name || '---', 100);
+                    typeWriterEffect('result-cnic', record.cnic || '---', 200);
+                    typeWriterEffect('result-address', record.address || '---', 300);
+                    
+                } else {
+                    errorDiv.textContent = data.message || 'ERROR: NO DATA FOUND FOR THIS NUMBER';
+                    errorDiv.style.display = 'block';
+                    
+                    // Glitch effect for error
+                    gsap.fromTo(errorDiv, 
+                        { textShadow: '0 0 5px rgba(255, 0, 0, 0.5)' },
+                        { textShadow: '0 0 15px rgba(255, 0, 0, 0.9)', duration: 0.5, repeat: 3, yoyo: true }
+                    );
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = `NETWORK ERROR: ${error.message}. CHECK API OR PROXY.`;
+                errorDiv.style.display = 'block';
+                console.error('Fetch error:', error);
+                
+                // Error animation
+                gsap.fromTo(errorDiv, 
+                    { scale: 1 },
+                    { scale: 1.05, duration: 0.2, repeat: 3, yoyo: true }
+                );
+            }
+        }
+        
+        // Typewriter effect function
+        function typeWriterEffect(elementId, text, delay) {
+            const element = document.getElementById(elementId);
+            let i = 0;
+            
+            setTimeout(() => {
+                const typingInterval = setInterval(() => {
+                    if (i < text.length) {
+                        element.textContent = text.substring(0, i + 1);
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
+                    }
+                }, 50);
+            }, delay);
+        }
+        
+        // Input field focus effect
+        document.getElementById('mobileInput').addEventListener('focus', function() {
+            gsap.to(this, {
+                boxShadow: '0 0 15px rgba(0, 255, 0, 0.7)',
+                duration: 0.3
+            });
+        });
+        
+        document.getElementById('mobileInput').addEventListener('blur', function() {
+            gsap.to(this, {
+                boxShadow: '0 0 5px rgba(0, 255, 0, 0.2)',
+                duration: 0.3
+            });
+        });
+        
+        // Terminal-like cursor effect
+        const inputField = document.getElementById('mobileInput');
+        let cursorVisible = true;
+        
+        setInterval(() => {
+            if (document.activeElement === inputField) {
+                cursorVisible = !cursorVisible;
+                inputField.style.borderRight = cursorVisible ? '2px solid var(--neon-green)' : '2px solid transparent';
+            }
+        }, 500);
+    </script>
+</body>
+</html>
