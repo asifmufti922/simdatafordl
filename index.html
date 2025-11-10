@@ -8,6 +8,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
     <style>
+        /* (Same styles as original — omitted here for brevity in comment) */
+        :root {
+            --neon-green: #0f0;
+            --neon-blue: #08f;
+            --neon-purple: #90f;
+            --dark-bg: #0a0a0a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        /* keep the rest of CSS identical to your original file */
+        /* ... (paste all original CSS here) ... */
+        #matrix-bg { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; opacity:0.15; }
+        .container { background-color: rgba(10,10,10,0.85); padding:2rem; border-radius:8px; box-shadow:0 0 15px rgba(0,255,0,0.3); max-width:600px; width:90%; text-align:center; border:1px solid var(--neon-green); position:relative; overflow:hidden; backdrop-filter: blur(5px); }
+        /* ... rest of original CSS kept ... */
+        
+    </style>
+        <style>
         :root {
             --neon-green: #0f0;
             --neon-blue: #08f;
@@ -345,30 +372,30 @@
                 width: 100%;
             }
         }
-    </style>
+            </style>
 </head>
 <body>
     <div id="matrix-bg"></div>
     <div class="particles" id="particles-js"></div>
     <div class="scanlines"></div>
-    
+
     <div class="corner corner-tl"></div>
     <div class="corner corner-tr"></div>
     <div class="corner corner-bl"></div>
     <div class="corner corner-br"></div>
-    
+
     <div class="container">
         <h1 class="glitch" data-text="Hafiz Muhammad Ali">Hafiz Muhammad Ali</h1>
         <h2 style="color: var(--neon-blue); margin-bottom: 1.5rem; font-size: 1.2rem;">:: SIM DATABASE ::</h2>
-        
+
         <div class="input-group">
-            <input type="text" id="mobileInput" placeholder="ENTER MOBILE NUMBER (e.g., 03xxxx)" autocomplete="off">
+            <input type="text" id="mobileInput" placeholder="ENTER MOBILE NUMBER (e.g., 03xxxxxxxxx) or 13-digit CNIC" autocomplete="off">
             <button onclick="fetchData()">INITIATE SCAN</button>
         </div>
-        
+
         <div id="loading" class="loading" style="display: none;">DECRYPTING DATA</div>
         <div id="error" class="error" style="display: none;"></div>
-        
+
         <div id="result" class="result" style="display: none;">
             <div>
                 <strong>MOBILE:</strong> <span id="result-mobile">---</span><br>
@@ -380,6 +407,129 @@
     </div>
 
     <script>
+        // (Keep matrix & three.js and GSAP initialization the same as original)
+        // For brevity in this snippet, only the main fetchData and small helpers are shown.
+        // If you removed/changed any other script earlier, restore original parts above.
+
+        // --- validation helpers ---
+        function isValidCnic(input) {
+            return /^\d{13}$/.test(input);
+        }
+        function isValidPhone(input) {
+            // Accept 10 or 11 digits (e.g., 3128428029 or 03218428029)
+            return /^\d{10,11}$/.test(input);
+        }
+
+        async function fetchData() {
+            const mobileInput = document.getElementById('mobileInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+
+            // reset UI
+            errorDiv.style.display = 'none';
+            resultDiv.style.display = 'none';
+            loadingDiv.style.display = 'none';
+            loadingDiv.textContent = 'DECRYPTING DATA';
+
+            if (!mobileInput) {
+                errorDiv.textContent = 'ERROR: INPUT KHAALI HAI — 13-digit CNIC ya 10/11-digit number darj karein.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const cnic = isValidCnic(mobileInput);
+            const phone = isValidPhone(mobileInput);
+
+            if (!cnic && !phone) {
+                errorDiv.textContent = 'ERROR: INVALID INPUT. ENTER 13-DIGIT CNIC OR 10/11-DIGIT NUMBER';
+                errorDiv.style.display = 'block';
+                gsap.fromTo(errorDiv, { x: -10 }, { x: 10, duration: 0.1, repeat: 5, yoyo: true, onComplete: () => gsap.to(errorDiv, { x:0, duration:0.1 })});
+                return;
+            }
+
+            // Show loading
+            loadingDiv.style.display = 'block';
+            gsap.fromTo(loadingDiv, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 });
+
+            // Build API URL (the API expects ?number=<value>)
+            // If user passed CNIC, still we'll send as 'number' param because API uses that param.
+            const apiBase = 'https://sim-data.ftgmhacks.workers.dev/';
+            const apiUrl = `${apiBase}?number=${encodeURIComponent(mobileInput)}`;
+
+            // Optional: small "hacking" animation text
+            const hackingEffect = setInterval(() => {
+                const randomText = Math.random().toString(36).substring(2, 7);
+                loadingDiv.textContent = `DECRYPTING DATA ${randomText}`;
+            }, 120);
+
+            try {
+                const resp = await fetch(apiUrl, {
+                    method: 'GET',
+                    // No special headers — if API blocks CORS you'll get error in catch.
+                });
+
+                clearInterval(hackingEffect);
+
+                if (!resp.ok) {
+                    throw new Error(`STATUS ${resp.status} ${resp.statusText}`);
+                }
+
+                // parse JSON response
+                const data = await resp.json();
+
+                loadingDiv.style.display = 'none';
+
+                // expected API shape: { status: 'success', data: [...] }  (based on your earlier code)
+                if (data && (data.status === 'success' || data.status === 'ok') && Array.isArray(data.data) && data.data.length > 0) {
+                    const record = data.data[0];
+
+                    // show results
+                    resultDiv.style.display = 'block';
+                    gsap.fromTo(resultDiv, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 });
+
+                    // write values (use fallback '---' if missing)
+                    typeWriterEffect('result-mobile', record.mobile || record.number || mobileInput || '---', 0);
+                    typeWriterEffect('result-name', record.name || '---', 100);
+                    typeWriterEffect('result-cnic', record.cnic || '---', 200);
+                    typeWriterEffect('result-address', record.address || record.addr || '---', 300);
+                } else {
+                    // API returned no data or failure
+                    const msg = (data && data.message) ? data.message : 'ERROR: NO DATA FOUND FOR THIS NUMBER';
+                    errorDiv.textContent = msg;
+                    errorDiv.style.display = 'block';
+                    gsap.fromTo(errorDiv, { textShadow: '0 0 5px rgba(255,0,0,0.5)' }, { textShadow: '0 0 15px rgba(255,0,0,0.9)', duration: 0.5, repeat: 2, yoyo: true });
+                }
+            } catch (err) {
+                clearInterval(hackingEffect);
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = `NETWORK ERROR: ${err.message}. Agar CORS error ho to batao.`;
+                errorDiv.style.display = 'block';
+                console.error('Fetch error:', err);
+                gsap.fromTo(errorDiv, { scale: 1 }, { scale: 1.05, duration: 0.2, repeat: 3, yoyo: true });
+            }
+        }
+
+        // Typewriter effect function (same as original)
+        function typeWriterEffect(elementId, text, delay) {
+            const element = document.getElementById(elementId);
+            let i = 0;
+            element.textContent = '';
+            setTimeout(() => {
+                const typingInterval = setInterval(() => {
+                    if (i < text.length) {
+                        element.textContent = text.substring(0, i + 1);
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
+                    }
+                }, 30);
+            }, delay);
+        }
+
+        // (Keep the rest of your original matrix + three.js animation code here unchanged.)
+    </script> 
+      <script>
         // Matrix background effect
         const matrixBg = document.getElementById('matrix-bg');
         const canvas = document.createElement('canvas');
@@ -550,43 +700,87 @@ if (!isCnic && !isPhone) {
                 );
                 return;
             }
-            
-            // Use allorigins proxy
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            const apiUrl = isCnic 
-    ? `https://sim-data.ftgmhacks.workers.dev/?number=${encodeURIComponent(mobileInput)}`
-    : `https://sim-data.ftgmhacks.workers.dev/?number=${encodeURIComponent(mobileInput)}`;
-            const url = proxyUrl + encodeURIComponent(apiUrl);
-            
-            try {
-                // Simulate hacking effect
-                const hackingEffect = setInterval(() => {
-                    const randomText = Math.random().toString(36).substring(2, 7);
-                    loadingDiv.textContent = `DECRYPTING DATA ${randomText}`;
-                }, 100);
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Origin': window.location.origin
-                    }
-                });
-                
-                clearInterval(hackingEffect);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ERROR! STATUS: ${response.status} - ${response.statusText}`);
-                }
-                
-                const proxyData = await response.json();
-                const data = JSON.parse(proxyData.contents);
-                
-                loadingDiv.style.display = 'none';
-                
-                if (data.status === 'success' && data.data && data.data.length > 0) {
-                    const record = data.data[0];
+              // Update result fields with typing animation
+                    resultDiv.style.display = 'block';
                     
-                    // Update result fields with typing animation
+                    gsap.fromTo(resultDiv, 
+                        { opacity: 0, y: 20 },
+                        { opacity: 1, y: 0, duration: 0.5 }
+                    );
+                    
+                    // Typewriter effect for each field
+                    typeWriterEffect('result-mobile', record.mobile || '---', 0);
+                    typeWriterEffect('result-name', record.name || '---', 100);
+                    typeWriterEffect('result-cnic', record.cnic || '---', 200);
+                    typeWriterEffect('result-address', record.address || '---', 300);
+                    
+                } else {
+                    errorDiv.textContent = data.message || 'ERROR: NO DATA FOUND FOR THIS NUMBER';
+                    errorDiv.style.display = 'block';
+                    
+                    // Glitch effect for error
+                    gsap.fromTo(errorDiv, 
+                        { textShadow: '0 0 5px rgba(255, 0, 0, 0.5)' },
+                        { textShadow: '0 0 15px rgba(255, 0, 0, 0.9)', duration: 0.5, repeat: 3, yoyo: true }
+                    );
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = `NETWORK ERROR: ${error.message}. CHECK API OR PROXY.`;
+                errorDiv.style.display = 'block';
+                console.error('Fetch error:', error);
+                
+                // Error animation
+                gsap.fromTo(errorDiv, 
+                    { scale: 1 },
+                    { scale: 1.05, duration: 0.2, repeat: 3, yoyo: true }
+                );
+            }
+        }
+        
+        // Typewriter effect function
+        function typeWriterEffect(elementId, text, delay) {
+            const element = document.getElementById(elementId);
+            let i = 0;
+            
+            setTimeout(() => {
+                const typingInterval = setInterval(() => {
+                    if (i < text.length) {
+                        element.textContent = text.substring(0, i + 1);
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
+                    }
+                }, 50);
+            }, delay);
+        }
+        
+        // Input field focus effect
+        document.getElementById('mobileInput').addEventListener('focus', function() {
+            gsap.to(this, {
+                boxShadow: '0 0 15px rgba(0, 255, 0, 0.7)',
+                duration: 0.3
+            });
+        });
+        
+        document.getElementById('mobileInput').addEventListener('blur', function() {
+            gsap.to(this, {
+                boxShadow: '0 0 5px rgba(0, 255, 0, 0.2)',
+                duration: 0.3
+            });
+        });
+        
+        // Terminal-like cursor effect
+        const inputField = document.getElementById('mobileInput');
+        let cursorVisible = true;
+        
+        setInterval(() => {
+            if (document.activeElement === inputField) {
+                cursorVisible = !cursorVisible;
+                inputField.style.borderRight = cursorVisible ? '2px solid var(--neon-green)' : '2px solid transparent';
+            }
+        }, 500); 
+              // Update result fields with typing animation
                     resultDiv.style.display = 'block';
                     
                     gsap.fromTo(resultDiv, 
@@ -666,6 +860,7 @@ if (!isCnic && !isPhone) {
                 inputField.style.borderRight = cursorVisible ? '2px solid var(--neon-green)' : '2px solid transparent';
             }
         }, 500);
+    </script>
     </script>
 </body>
 </html>
