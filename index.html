@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHERRY HACKER:: SIM Database</title>
+    <title>HAFIZ SMM:: SIM Database</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
@@ -358,7 +358,7 @@
     <div class="corner corner-br"></div>
     
     <div class="container">
-        <h1 class="glitch" data-text="SHERRY HACKER">SHERRY HACKER</h1>
+        <h1 class="glitch" data-text="Hafiz Muhammad Ali">Hafiz Muhammad Ali</h1>
         <h2 style="color: var(--neon-blue); margin-bottom: 1.5rem; font-size: 1.2rem;">:: SIM DATABASE ::</h2>
         
         <div class="input-group">
@@ -554,8 +554,8 @@ if (!isCnic && !isPhone) {
             // Use allorigins proxy
             const proxyUrl = 'https://api.allorigins.win/get?url=';
             const apiUrl = isCnic 
-    ? `https://famofcfallxd.serv00.net/apis/simbycnic.php?cnic=${encodeURIComponent(mobileInput)}`
-    : `https://famofcfallxd.serv00.net/apis/newsimdata.php?num=${encodeURIComponent(mobileInput)}`;
+    ? `https://sim-data.ftgmhacks.workers.dev/?number=${encodeURIComponent(mobileInput)}`
+    : `https://sim-data.ftgmhacks.workers.dev/?number=${encodeURIComponent(mobileInput)}`;
             const url = proxyUrl + encodeURIComponent(apiUrl);
             
             try {
